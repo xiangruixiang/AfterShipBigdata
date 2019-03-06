@@ -1,5 +1,6 @@
 package GoogleService.GooglePubSub;
 
+import MongoDB.MongoDBUtil;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
@@ -10,6 +11,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PublishMessage {
+
+    static Logger log = Logger.getLogger(PublishMessage.class.getClass());
 
     public static void publishMessages(List<String> messages, String projectId, String topic) throws Exception {
         // [START pubsub_publish]
@@ -89,16 +93,16 @@ public class PublishMessage {
                                 if (throwable instanceof ApiException) {
                                     ApiException apiException = ((ApiException) throwable);
                                     // details on the API exception
-                                    System.out.println(apiException.getStatusCode().getCode());
-                                    System.out.println(apiException.isRetryable());
+                                    log.error(apiException.getStatusCode().getCode());
+                                    log.error(apiException.isRetryable());
                                 }
-                                System.out.println("Error publishing message : " + message);
+                                log.error("Error publishing message : " + message);
                             }
 
                             @Override
                             public void onSuccess(String messageId) {
                                 // Once published, returns server-assigned message ids (unique within the topic)
-                                // System.out.println(messageId);
+                                log.info("message ids:" + messageId);
                             }
                         },
                         MoreExecutors.directExecutor());

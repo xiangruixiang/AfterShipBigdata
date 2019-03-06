@@ -1,87 +1,82 @@
-package ReadMongoDB;
+package MongoDB;
 
 import GoogleService.GooglePubSub.PublishMessage;
 import com.alibaba.fastjson.JSON;
-
-import com.mongodb.*;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Projections;
-import org.bson.Document;
+import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Projections;
+import org.apache.log4j.Logger;
+import org.bson.Document;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+public class MongoDBUtil {
 
+    static Logger log = Logger.getLogger(MongoDBUtil.class.getClass());
 
-public class MongodbCRUD {
+    public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String tableName, String searchTime){
 
-    static final String GCPprojectId = "aftership-team-data";
-    static final String GCPtopic = "bigquery";
+        String sourceTimeBegin="";
+        String sourceTimeEnd="";
+        String jsonStr="";
+        long millionTime;
+        int randNumber;
 
-    public static void main( String args[] ){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//set date format
+        SimpleDateFormat timer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//set date format
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'");
 
-        String searchTime;
+        Map<String,Object> mapMessage = new HashMap<String,Object>();
+
+        BasicDBObject query = new BasicDBObject();
+
+        List<String> dataList = new ArrayList<>();
+
+        SimpleDateFormat USDateTime = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 
         try{
             //connect to mongodb  104.196.146.203
-            MongoClient mongoClient = new MongoClient( "104.196.146.203" , 27017 );
+            MongoClient mongoClient = new MongoClient(serverIP, Integer.parseInt(serverPort));
 
             //connect to databases
-            MongoDatabase mongoDatabase = mongoClient.getDatabase("aftership_archived");
+            MongoDatabase mongoDatabase = mongoClient.getDatabase(databaseName);
 
             //choose tables
-            MongoCollection<Document> collection = mongoDatabase.getCollection("trackings_2018_03");
+            MongoCollection<Document> collection = mongoDatabase.getCollection(tableName);
 
+            Date searchTimeDate =df.parse(searchTime);   //convert to date
 
-            searchTime = "2018-03-06 00:10:00";  //init search date
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//set date format
-            SimpleDateFormat timer = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//set date format
-            Date date =df.parse(searchTime);   //convert to date
-
-            Map<String,Object> mapMessage = new HashMap<String,Object>();
-            String sourceTimeBegin="";
-            String sourceTimeEnd="";
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'");
-            BasicDBObject query = new BasicDBObject();
-            List<String> dataList = new ArrayList<>();
-            String jsonStr="";
-
-            SimpleDateFormat USDateTime = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-            long millionTime;
-            int randNumber;
 
             while (true){
 
-                date.setTime(date.getTime() + 1000);
-                searchTime = df.format(date);
+                log.info("use time is:" + sourceTimeBegin);
 
-                sourceTimeBegin = searchTime.toString() + ".000Z";
-                sourceTimeEnd = searchTime.toString() + ".999Z";
-
-                System.out.println("use time is:" + sourceTimeBegin);
-
-                // add query conditions
-              /*  Pattern pattern = Pattern.compile("^.*" + searchTime + ".*$", Pattern.CASE_INSENSITIVE);
-                BasicDBObject query = new BasicDBObject();
-                query.put("updated_at", pattern);  2018-03-31 00:03:34.360Z  2018-03-31 02:00:00.000Z
-*/
                 try {
+
+                    searchTimeDate.setTime(searchTimeDate.getTime() + 1000); // add a second
+                    searchTime = df.format(searchTimeDate);
+
+                    sourceTimeBegin = searchTime.toString() + ".000Z";
+                    sourceTimeEnd = searchTime.toString() + ".999Z";
                     Date startDate = sdf.parse(sourceTimeBegin);
                     Date endDate = sdf.parse(sourceTimeEnd);
 
                     query.put("updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
 
-                    System.out.println("Search begin time is :" + timer.format(new Date()));
+                    log.info("Search begin time is :" + timer.format(new Date()));
 
-                    //execute query
+                    //execute query and return specified columns
                     FindIterable<Document> findIterable = collection.find(query
-                        ).projection(Projections.include( "tracking_number", "user_id", "updated_at", "created_at",
-                                "subtag", "tag", "_id"));
+                    ).projection(Projections.include( "tracking_number", "user_id", "updated_at", "created_at",
+                            "subtag", "tag", "_id"));
 
                     MongoCursor<Document> mongoCursor = findIterable.iterator();
-
 
                     //loop output data
                     while (mongoCursor.hasNext()) {
@@ -100,19 +95,17 @@ public class MongodbCRUD {
                         mapMessage.put("created_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(createdTime));
                         mapMessage.put("subtag", json.get("subtag").toString());
                         mapMessage.put("tag", json.get("tag").toString());
-                        // mapMessage.put("insert_time",System.currentTimeMillis()/1000);
                         mapMessage.put("created_date", new SimpleDateFormat("yyyy-MM-dd").format(createdTime));
-
 
                         jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                         mapMessage.clear();
 
-                        System.out.println("output data is：" + jsonStr);
+                        log.info("output data is：" + jsonStr);
 
-                        dataList.add(jsonStr); //add to list
+                        dataList.add(jsonStr); //add message to list
                     }
                     //send to publish
-                    PublishMessage.publishMessagesWithErrorHandler(dataList, GCPprojectId, GCPtopic);
+                    PublishMessage.publishMessagesWithErrorHandler(dataList, MongodbCRUD.GCPprojectId, MongodbCRUD.GCPprojectId);
                 }
                 catch (Exception e){
                     System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -127,11 +120,7 @@ public class MongodbCRUD {
         }catch(Exception e){
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
         }
+
     }
-
-
-
-
-
 
 }

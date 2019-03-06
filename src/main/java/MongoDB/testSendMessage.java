@@ -1,4 +1,4 @@
-package ReadMongoDB;
+package MongoDB;
 
 import GoogleService.GooglePubSub.PublishMessage;
 
@@ -19,7 +19,6 @@ public class testSendMessage {
         dataList.add("22222");
 
         try {
-
             PublishMessage.publishMessagesWithErrorHandler(dataList, GCPprojectId, GCPtopic);
         } catch (Exception e) {
             e.printStackTrace();
