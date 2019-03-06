@@ -105,7 +105,7 @@ public class MongoDBUtil {
                         dataList.add(jsonStr); //add message to list
                     }
                     //send to publish
-                    PublishMessage.publishMessagesWithErrorHandler(dataList, MongodbCRUD.GCPprojectId, MongodbCRUD.GCPprojectId);
+                    PublishMessage.publishMessagesWithErrorHandler(dataList, MongodbCRUD.GCPprojectId, MongodbCRUD.GCPtopic);
                 }
                 catch (Exception e){
                     System.err.println( e.getClass().getName() + ": " + e.getMessage() );
