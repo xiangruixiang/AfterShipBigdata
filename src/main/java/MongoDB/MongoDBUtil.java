@@ -13,6 +13,7 @@ import com.mongodb.client.model.Projections;
 import org.apache.log4j.Logger;
 import org.bson.Document;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -22,9 +23,11 @@ public class MongoDBUtil {
 
     public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String tableName, String searchTime){
 
-        String sourceTimeBegin="";
-        String sourceTimeEnd="";
-        String jsonStr="";
+        String sourceTimeBegin = null;
+        String sourceTimeEnd;
+        String jsonStr;
+        String filterDateFrom;
+        Timestamp filterDateFromTs;
         long millionTime;
         int randNumber;
 
@@ -41,7 +44,7 @@ public class MongoDBUtil {
         SimpleDateFormat USDateTime = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 
         try{
-            //connect to mongodb  104.196.146.203
+            //connect to mongodb
             MongoClient mongoClient = new MongoClient(serverIP, Integer.parseInt(serverPort));
 
             //connect to databases
@@ -52,13 +55,11 @@ public class MongoDBUtil {
 
             Date searchTimeDate =df.parse(searchTime);   //convert to date
 
-
             while (true){
 
-                log.info("use time is:" + sourceTimeBegin);
+                log.info("use time is:" + searchTime);
 
                 try {
-
                     searchTimeDate.setTime(searchTimeDate.getTime() + 1000); // add a second
                     searchTime = df.format(searchTimeDate);
 
@@ -69,14 +70,16 @@ public class MongoDBUtil {
 
                     query.put("updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
 
-                    log.info("Search begin time is :" + timer.format(new Date()));
+                    log.info("Begin time is :" + timer.format(new Date()));
 
                     //execute query and return specified columns
                     FindIterable<Document> findIterable = collection.find(query
-                    ).projection(Projections.include( "tracking_number", "user_id", "updated_at", "created_at",
-                            "subtag", "tag", "_id"));
+                    ).projection(Projections.include("_id", "user_id", "created_at", "updated_at", "origin_courier_id",
+                            "destination_courier_id", "tag", "subtag", "delivery_time", "return_to_sender",  "origin_country_iso3",
+                            "destination_country_iso3", "courier_origin_country_iso3", "courier_destination_country_iso3", "source"));
 
                     MongoCursor<Document> mongoCursor = findIterable.iterator();
+
 
                     //loop output data
                     while (mongoCursor.hasNext()) {
@@ -87,15 +90,30 @@ public class MongoDBUtil {
                         randNumber = (int) ((Math.random() * 9 + 1) * 1000);
                         mapMessage.put("cus_id", Long.valueOf(String.valueOf(millionTime).concat(String.valueOf(randNumber))));
                         mapMessage.put("id", json.get("_id").toString());
-                        mapMessage.put("tracking_number", json.getString("tracking_number"));
                         mapMessage.put("user_id", json.get("user_id").toString());
-                        Date updatedTime = USDateTime.parse(json.get("updated_at").toString());
-                        mapMessage.put("updated_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(updatedTime));
+
                         Date createdTime = USDateTime.parse(json.get("created_at").toString());
-                        mapMessage.put("created_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(createdTime));
-                        mapMessage.put("subtag", json.get("subtag").toString());
-                        mapMessage.put("tag", json.get("tag").toString());
-                        mapMessage.put("created_date", new SimpleDateFormat("yyyy-MM-dd").format(createdTime));
+                        filterDateFrom = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(createdTime);
+                        filterDateFromTs = new Timestamp ((timer.parse(filterDateFrom)).getTime());
+                        mapMessage.put("created_at", String.valueOf(filterDateFromTs.getTime()).substring(0,10));
+
+                        Date updatedTime = USDateTime.parse(json.get("updated_at").toString());
+                        System.out.println(json.get("updated_at").toString());
+                        filterDateFrom = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(updatedTime);
+                        filterDateFromTs = new Timestamp ((timer.parse(filterDateFrom)).getTime());
+                        mapMessage.put("updated_at", String.valueOf(filterDateFromTs.getTime()).substring(0,10));
+
+                        mapMessage.put("origin_courier_slug", JasonHandler(json, "origin_courier_id"));
+                        mapMessage.put("destination_courier_slug", JasonHandler(json, "destination_courier_id"));
+                        mapMessage.put("latest_status", json.get("subtag").toString());
+                        mapMessage.put("latest_substatus", json.get("tag").toString());
+                        mapMessage.put("days_in_transit", Integer.valueOf(JasonHandler(json, "delivery_time")));
+                        mapMessage.put("return_to_sender", Boolean.valueOf(JasonHandler(json, "return_to_sender")));
+                        mapMessage.put("user_origin_country", JasonHandler(json, "origin_country_iso3"));
+                        mapMessage.put("user_destination_country", JasonHandler(json, "destination_country_iso3"));
+                        mapMessage.put("courier_origin_country", JasonHandler(json, "courier_origin_country_iso3"));
+                        mapMessage.put("courier_destination_country", JasonHandler(json, "courier_destination_country_iso3"));
+                        mapMessage.put("source", JasonHandler(json, "source"));
 
                         jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                         mapMessage.clear();
@@ -105,16 +123,16 @@ public class MongoDBUtil {
                         dataList.add(jsonStr); //add message to list
                     }
                     //send to publish
-                    PublishMessage.publishMessagesWithErrorHandler(dataList, MongodbCRUD.GCPprojectId, MongodbCRUD.GCPtopic);
+                    PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPtopic);
                 }
                 catch (Exception e){
-                    System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-                    System.out.println("Exception: Search mongo DB error");
+                    log.error( e.getClass().getName() + ": " + e.getMessage() );
+                    log.error("Exception: Search mongo DB error");
                 }
                 finally {
                     query.clear();  //clear search condition
                     dataList.clear();   //clear data list
-                    System.out.println("Search end time is :" + timer.format(new Date()));
+                    log.info("End time is :" + timer.format(new Date()));
                 }
             }
         }catch(Exception e){
@@ -123,4 +141,35 @@ public class MongoDBUtil {
 
     }
 
+
+
+
+    /*
+    create date: 2019-03-08
+    function: analyze json string
+    parameters: jsonString: json string
+                keyName: json node
+     */
+
+    public String JasonHandler(Document jsonString, String keyName) {
+
+        String keyValues="";
+
+        boolean keyObjeect = jsonString.containsKey(keyName);
+
+        if(keyObjeect){
+
+            Object valueObject = jsonString.get(keyName);
+
+            if(valueObject == null){
+                return null;
+            }
+
+            else {
+                keyValues = valueObject.toString();
+            }
+        }
+
+        return keyValues;
+    }
 }

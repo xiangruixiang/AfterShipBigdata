@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 
-public class MongodbCRUD {
+public class Mongodb {
 
     static String GCPprojectId = "";
     static  String GCPtopic = "";
@@ -17,7 +17,7 @@ public class MongodbCRUD {
     static  String MongoDBDatabase = "";
     static  String MongoDBTable = "";
     static  String searchTime = "";
-    static Logger log = Logger.getLogger(MongodbCRUD.class.getClass());
+    static Logger log = Logger.getLogger(Mongodb.class.getClass());
 
     public static void main( String args[] ) throws IOException {
 
