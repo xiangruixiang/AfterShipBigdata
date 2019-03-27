@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
 
-
+import static java.lang.Character.UnicodeBlock.*;
+import com.google.common.base.Strings;
 
 public class test {
 
@@ -23,6 +24,56 @@ public class test {
 
 
     public static void main( String args[] ) throws ParseException {
+
+
+
+        Stack<String> st = new Stack<String>();
+
+
+        st.push("a");
+        st.push("b");
+        st.push("c");
+        st.push("d");
+
+
+
+        for(int i=0; i<4; i++){
+
+            System.out.println(st.pop());
+
+        }
+
+
+
+        /*for(int i=1; i<5; i++){
+
+            for(int j=1; j<=50; j++){
+
+                if(j > 10){
+                    break;
+                }
+                System.out.println("output:" + j);
+
+            }
+
+        }
+*/
+
+
+/*
+        long keyDate = Long.valueOf("2018030511000000");
+
+        keyDate = keyDate + 1;
+
+        System.out.println(keyDate);
+*/
+
+
+     /*   Map<String,Object> colMap = new HashMap<String,Object>();
+        colMap.put("title","test time");
+        colMap.put("email","3@aftership.com");
+
+        System.out.println(colMap.size());*/
 
 
 
@@ -82,26 +133,37 @@ public class test {
 
         */
 
-        String jsonString = "{\"name\":\"ma\",\"age\":null}";
+/*
 
-        String aa;
-
-        Map<String,Object> stu = new HashMap<String, Object>();
-
-        JSONObject strjson = new JSONObject(jsonString);
-
-        Object strAge = strjson.get("age");
-
-        stu.put("name","aa");
-        stu.put("age",strAge);
-
-        JSONObject json = new JSONObject(stu);
-
-        System.out.println(jsonString.toString());
-
-
-
+        String containChinese = "test,我有中文";
+        String containNoChiese = "test, i don't contain chinese";
+        System.out.println("containChinese 是否包含中文 :" + checkStringContainChinese(containChinese));
+        System.out.println("containChinese 是否包含中文 :" + checkStringContainChinese(containNoChiese));
+*/
 
 
     }
+/*
+    private static boolean checkStringContainChinese(String checkStr){
+        if(!Strings.isNullOrEmpty(checkStr)){
+            char[] checkChars = checkStr.toCharArray();
+            for(int i = 0; i < checkChars.length; i++){
+                char checkChar = checkChars[i];
+                if(checkCharContainChinese(checkChar)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean checkCharContainChinese(char checkChar){
+        Character.UnicodeBlock ub = Character.UnicodeBlock.of(checkChar);
+        if(CJK_UNIFIED_IDEOGRAPHS == ub || CJK_COMPATIBILITY_IDEOGRAPHS == ub || CJK_COMPATIBILITY_FORMS == ub ||
+                CJK_RADICALS_SUPPLEMENT == ub || CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A == ub || CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B == ub){
+            return true;
+        }
+        return false;
+    }*/
+
 }
