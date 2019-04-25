@@ -1,5 +1,8 @@
 package GoogleService.BigTable;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.cloud.bigtable.beam.CloudBigtableIO;
+import com.google.cloud.bigtable.beam.CloudBigtableTableConfiguration;
 import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -7,20 +10,15 @@ import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
-import org.apache.beam.sdk.values.KV;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
-
-import com.google.cloud.bigtable.beam.CloudBigtableIO;
-import com.google.cloud.bigtable.beam.CloudBigtableTableConfiguration;
 
 
 /**
@@ -51,26 +49,30 @@ import com.google.cloud.bigtable.beam.CloudBigtableTableConfiguration;
  * not require the GOOGLE_APPLICATION_CREDENTIALS, since the pipeline will use the security
  * configuration of the project specified by --project.
  */
-public class PubsubWordCount {
+public class PubSubToBigTable {
     private static final byte[] FAMILY = Bytes.toBytes("cf");
     private static final byte[] QUALIFIER = Bytes.toBytes("qualifier");
     static final int WINDOW_SIZE = 1; // Default window duration in minutes
     private static final int INJECTORNUMWORKERS = 1; //number of workers used for injecting
+
     //pubsub messages
 
-    static final DoFn<KV<String, Long>, Mutation> MUTATION_TRANSFORM =
-            new DoFn<KV<String, Long>, Mutation>() {
-                private static final long serialVersionUID = 1L;
+    static final DoFn<String, Mutation> MUTATION_TRANSFORM = new DoFn<String, Mutation>() {
+        private static final long serialVersionUID = 1L;
+        //  { name: "John", age: 30, city: "New York" }
+        @ProcessElement
+        public void processElement(DoFn<String, Mutation>.ProcessContext c) throws Exception {
 
-                @ProcessElement
-                public void processElement(DoFn<KV<String, Long>, Mutation>.ProcessContext c)
-                        throws Exception {
-                    KV<String, Long> element = c.element();
-                    byte[] key = element.getKey().getBytes();
-                    byte[] count = Bytes.toBytes(element.getValue());
-                    c.output(new Put(key).addColumn(FAMILY, QUALIFIER, count));
-                }
-            };
+            JSONObject jsonObject = JSONObject.parseObject(c.element());
+
+            Put put = new Put(Bytes.toBytes(jsonObject.get("name").toString()));
+
+            put.addColumn(FAMILY, Bytes.toBytes("age"), Bytes.toBytes(jsonObject.get("age").toString()));
+            put.addColumn(FAMILY, Bytes.toBytes("city"), Bytes.toBytes(jsonObject.get("city").toString()));
+
+            c.output(put);
+        }
+    };
 
     /**
      * Extracts words from a line and append the line's timestamp to each word, so that we can use a
@@ -86,13 +88,15 @@ public class PubsubWordCount {
         @ProcessElement
         public void processElement(ProcessContext c) {
             Instant timestamp = c.timestamp();
-            for (String word : c.element().split("[^a-zA-Z']+")) {
-                if (!word.isEmpty()) {
-                    c.output(word + "|" + timestamp);
-                }
+
+            if (!c.element().isEmpty()) {
+                c.output(c.element());
             }
+
         }
     }
+
+
 
     public static interface BigtablePubsubOptions extends CloudBigtableOptions {
         @Default.Integer(WINDOW_SIZE)
@@ -160,7 +164,6 @@ public class PubsubWordCount {
                 .apply(PubsubIO.readStrings().fromTopic(options.getPubsubTopic()))
                 .apply(Window.<String> into(window))
                 .apply(ParDo.of(new ExtractWordsFn()))
-                .apply(Count.<String> perElement())
                 .apply(ParDo.of(MUTATION_TRANSFORM))
                 .apply(CloudBigtableIO.writeToTable(config));
 
@@ -168,6 +171,7 @@ public class PubsubWordCount {
         // Start a second job to inject messages into a Cloud Pubsub topic
         injectMessages(options);
     }
+
 
     private static void injectMessages(BigtablePubsubOptions options) {
         String inputFile = options.getInputFile();

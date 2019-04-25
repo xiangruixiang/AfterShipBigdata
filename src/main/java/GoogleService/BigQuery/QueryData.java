@@ -48,5 +48,9 @@ public class QueryData {
             long id = row.get("id").getLongValue();
             System.out.println("id:"+ id);
         }
+
+
     }
+
+
 }

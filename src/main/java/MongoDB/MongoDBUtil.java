@@ -2,6 +2,8 @@ package MongoDB;
 
 import GoogleService.GooglePubSub.PublishMessage;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.MongoClient;
@@ -12,6 +14,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import org.apache.log4j.Logger;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -21,13 +24,14 @@ public class MongoDBUtil {
 
     static Logger log = Logger.getLogger(MongoDBUtil.class.getClass());
 
-    public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String tableName, String searchTime){
+    public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String MongoDBTable, String searchTime){
 
         String sourceTimeBegin = null;
         String sourceTimeEnd;
         String jsonStr;
         String filterDateFrom;
         Timestamp filterDateFromTs;
+
         long millionTime;
         int randNumber;
 
@@ -51,7 +55,7 @@ public class MongoDBUtil {
             MongoDatabase mongoDatabase = mongoClient.getDatabase(databaseName);
 
             //choose tables
-            MongoCollection<Document> collection = mongoDatabase.getCollection(tableName);
+            MongoCollection<Document> collection = mongoDatabase.getCollection(MongoDBTable);
 
             Date searchTimeDate =df.parse(searchTime);   //convert to date
 
@@ -76,7 +80,8 @@ public class MongoDBUtil {
                     FindIterable<Document> findIterable = collection.find(query
                     ).projection(Projections.include("_id", "user_id", "created_at", "updated_at", "origin_courier_id",
                             "destination_courier_id", "tag", "subtag", "delivery_time", "return_to_sender",  "origin_country_iso3",
-                            "destination_country_iso3", "courier_origin_country_iso3", "courier_destination_country_iso3", "source"));
+                            "destination_country_iso3", "courier_origin_country_iso3", "courier_destination_country_iso3", "source",
+                            "shipping_method", "checkpoints"));
 
                     MongoCursor<Document> mongoCursor = findIterable.iterator();
 
@@ -105,8 +110,8 @@ public class MongoDBUtil {
 
                         mapMessage.put("origin_courier_slug", JasonHandler(json, "origin_courier_id"));
                         mapMessage.put("destination_courier_slug", JasonHandler(json, "destination_courier_id"));
-                        mapMessage.put("latest_status", json.get("subtag").toString());
-                        mapMessage.put("latest_substatus", json.get("tag").toString());
+                        mapMessage.put("latest_status", json.get("tag").toString());
+                        mapMessage.put("latest_substatus", json.get("subtag").toString());
                         mapMessage.put("days_in_transit", Integer.valueOf(JasonHandler(json, "delivery_time")));
                         mapMessage.put("return_to_sender", Boolean.valueOf(JasonHandler(json, "return_to_sender")));
                         mapMessage.put("user_origin_country", JasonHandler(json, "origin_country_iso3"));
@@ -114,16 +119,43 @@ public class MongoDBUtil {
                         mapMessage.put("courier_origin_country", JasonHandler(json, "courier_origin_country_iso3"));
                         mapMessage.put("courier_destination_country", JasonHandler(json, "courier_destination_country_iso3"));
                         mapMessage.put("source", JasonHandler(json, "source"));
+                        mapMessage.put("shipping_method", JasonHandler(json, "shipping_method"));
+
+                        JSONObject jsonObject = JSONObject.parseObject(json.toJson());
+                        JSONArray transidArray = jsonObject.getJSONArray("checkpoints");
+
+                        //get checkpoint tag:InTransit and checkpoint_time
+                        for (int i = 0; i < transidArray.size(); i++) {
+                            JSONObject innerTransid = transidArray.getJSONObject(i);
+                           // System.out.println("InTransit" + i  + ": " + innerTransid);
+                            String inTransitTag = innerTransid.get("tag").toString();
+                            if (inTransitTag.equalsIgnoreCase("InTransit")) {
+                                mapMessage.put("in_transit_checkpoint_time", innerTransid.get("checkpoint_time").toString().substring(9,19));
+                                break;
+                            }
+                        }
+
+
+                        //get checkpoint tag:Delivered and checkpoint_time
+                        for (int i = 0; i < transidArray.size(); i++) {
+                            JSONObject innerTransid = transidArray.getJSONObject(i);
+                           // System.out.println("Delivered" + i  + ": " + innerTransid);
+                            String deliveredStatus = innerTransid.get("tag").toString();
+                            if (deliveredStatus.equalsIgnoreCase("Delivered")) {
+                                mapMessage.put("delivered_checkpoint_time", innerTransid.get("checkpoint_time").toString().substring(9,19));
+                                break;
+                            }
+                        }
 
                         jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                         mapMessage.clear();
-
-                        log.info("output data is：" + jsonStr);
+                       // log.info("origin value is:" + jsonObject.toString());
+                        log.info("output data is:" + jsonStr);
 
                         dataList.add(jsonStr); //add message to list
                     }
                     //send to publish
-                    PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPtopic);
+                    PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPTopicTrackingsToBigTableAndBigQuery);
                 }
                 catch (Exception e){
                     log.error( e.getClass().getName() + ": " + e.getMessage() );

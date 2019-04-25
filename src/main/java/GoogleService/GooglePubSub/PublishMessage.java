@@ -77,6 +77,9 @@ public class PublishMessage {
            // List<String> messages = Arrays.asList("first message", "second message");
 
             for (final String message : messages) {
+
+                System.out.println("topic message is:" + message);
+
                 ByteString data = ByteString.copyFromUtf8(message);
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
 

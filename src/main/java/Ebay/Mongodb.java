@@ -1,4 +1,4 @@
-package MongoDB;
+package Ebay;
 
 import org.apache.log4j.Logger;
 
@@ -38,7 +38,6 @@ public class Mongodb {
         resource.load(stream);
 
         //read properties
-        //read properties
         GCPprojectId = resource.getProperty("GCPprojectId");
         GCPTopicTrackingsToBigTableAndBigQuery = resource.getProperty("GCPTopicTrackingsToBigTableAndBigQuery");
         GCPeBayTopiceEbayToBigTable = resource.getProperty("GCPeBayTopiceEbayToBigTable");
@@ -50,10 +49,10 @@ public class Mongodb {
         // initialize time to begin search , please use updated_at value, example: 2018-03-06 00:10:00
         searchTime = resource.getProperty("SearchTime");
 
-        MongoDBUtil mongoDB = new MongoDBUtil();
+        EbayTable mongoDB = new EbayTable();
 
         //read mongo db
-        mongoDB.ReadMongoDB(MongoDBServerIP,  MongoDBServerPort, MongoDBDatabase ,MongoDBTable, searchTime);
+        mongoDB.ReadMongoDB(MongoDBServerIP,  MongoDBServerPort, MongoDBDatabase, MongoDBTable, searchTime);
 
     }
 

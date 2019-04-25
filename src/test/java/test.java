@@ -25,7 +25,61 @@ public class test {
 
     public static void main( String args[] ) throws ParseException {
 
+/*
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss mmm");
+        Date now = new Date();
+        System.out.println("当前时间：" + sdf.format(now));
 
+        Calendar nowTime = Calendar.getInstance();
+        nowTime.add(Calendar.HOUR_OF_DAY, -12);
+        System.out.println(sdf.format(nowTime.getTime()));
+
+
+*/
+
+/*
+        SimpleDateFormat newsdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss mmm");
+
+        Date newnow = newsdf.parse("2019-04-19 15:44:17 044");
+        System.out.println("当前时间：" + newsdf.format(newnow));
+
+        Calendar nowTime = Calendar.getInstance();
+        nowTime.add(Calendar.HOUR_OF_DAY, -3);
+        System.out.println(newsdf.format(nowTime.getTime()));
+        */
+
+
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss mmm");
+        String str="2019-04-19 06:44:17 044";
+        Date dt=sdf.parse(str);
+        Calendar rightNow = Calendar.getInstance();
+        rightNow.setTime(dt);
+        rightNow.add(Calendar.HOUR_OF_DAY,-8);//日期加10天
+        Date dt1=rightNow.getTime();
+        String reStr = sdf.format(dt1);
+        System.out.println(reStr);
+
+
+
+/*
+        Random r = new Random();
+        for (int i = 0; i < 10; i++) {
+            //int num = (int) (Math.random() *3 + 1);
+            int a = r.nextInt(3) + 1;
+            System.out.println("a:" + a);
+           // System.out.println("b:" + num);
+        }
+
+     */
+
+/*
+
+        int randNumber = (int) ((Math.random() * 9 + 1) * 1000);
+        System.out.println(randNumber);
+
+*/
+
+/*
 
         Stack<String> st = new Stack<String>();
 
@@ -35,14 +89,11 @@ public class test {
         st.push("c");
         st.push("d");
 
-
-
         for(int i=0; i<4; i++){
-
             System.out.println(st.pop());
-
         }
 
+*/
 
 
         /*for(int i=1; i<5; i++){

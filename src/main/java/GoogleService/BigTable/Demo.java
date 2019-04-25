@@ -2,20 +2,11 @@ package GoogleService.BigTable;
 
 import com.alibaba.fastjson.JSON;
 import com.google.cloud.bigtable.hbase.BigtableConfiguration;
-
 import com.google.common.base.Strings;
-import com.google.protobuf.ByteString;
-import com.mongodb.BasicDBObject;
-import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.filter.SubstringComparator;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -23,7 +14,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static java.lang.Character.UnicodeBlock.*;
-import com.google.common.base.Strings;
 
 
 
@@ -108,7 +98,8 @@ public class Demo {
 
         // search box
         //searchValue = "5";
-        mutipleFilter(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
+       // mutipleFilter(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
+
 
     }
 
@@ -522,6 +513,8 @@ public class Demo {
             System.exit(1);
         }
     }
+
+
 
 
 

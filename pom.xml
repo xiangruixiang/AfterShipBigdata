@@ -72,6 +72,16 @@
             <version>23.6-jre</version>
         </dependency>
 
+<!--
+        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.beam/beam-vendor-guava-20_0 &ndash;&gt;
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-vendor-guava-20_0</artifactId>
+            <version>0.1</version>
+        </dependency>
+
+-->
+
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
@@ -103,6 +113,11 @@
             <version>1.9.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-sdks-java-io-google-cloud-platform</artifactId>
+            <version>2.9.0</version>
+        </dependency>
 
     </dependencies>
 
@@ -110,8 +125,32 @@
     <build>
         <finalName>AfterShipBigdata</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <!-- add Main-Class to manifest file -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>Ebay.PubSubeBayToBigTable</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-            <!--add all dependencies to jar-with-dependencies-->
+<!--
+
+            &lt;!&ndash;add all dependencies to jar-with-dependencies&ndash;&gt;
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -124,16 +163,21 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>GoogleService.BigQuery.QueryData</mainClass>
+                                    <mainClass>Ebay.PubSubeBayToBigTable</mainClass>
                                 </manifest>
                             </archive>
+
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+-->
+
         </plugins>
     </build>
 </project>

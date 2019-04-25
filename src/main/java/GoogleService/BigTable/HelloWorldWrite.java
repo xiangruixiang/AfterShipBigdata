@@ -61,6 +61,9 @@ public class HelloWorldWrite {
 
         @ProcessElement
         public void processElement(DoFn<String, Mutation>.ProcessContext c) throws Exception {
+
+
+
             c.output(new Put(c.element().getBytes()).addColumn(FAMILY, QUALIFIER, VALUE));
         }
     };
