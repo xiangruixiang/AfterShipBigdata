@@ -216,7 +216,7 @@ public class EbayTable {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'");
 
         try {
-            query.put("updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
+            query.put("index_updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
 
             log.info("Begin time is :" + df.format(new Date()));
 
@@ -260,12 +260,11 @@ public class EbayTable {
                         courierId = JasonHandler(json, "origin_courier_id").trim();
                     }
 
-                    System.out.println("courierId:" + courierId);
+
                     mapMessage.put("slug", "null");
                     for (Map.Entry<String, Object> entry : mapSlug.entrySet()) {
                         if( entry.getKey().trim().equals(courierId)){
                             mapMessage.put("slug", entry.getValue().toString());
-                            System.out.println("slug:" + entry.getValue().toString());
                         }
                     }
 
@@ -302,14 +301,14 @@ public class EbayTable {
                     jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                     mapMessage.clear();
 
-                    log.info("output data is:" + jsonStr);
+                    //log.info("output data is:" + jsonStr);
                     dataList.add(jsonStr); //add message to list
                 }
             }
 
             if(dataList.size()>0){
                 //send to publish
-                PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPeBayTopiceEbayToBigTable);
+             //   PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPeBayTopiceEbayToBigTable);
             }
 
         }

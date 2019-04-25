@@ -1,11 +1,9 @@
 package GoogleService.GooglePubSub;
 
-import MongoDB.MongoDBUtil;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ApiException;
-import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
@@ -14,7 +12,6 @@ import com.google.pubsub.v1.PubsubMessage;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -78,7 +75,7 @@ public class PublishMessage {
 
             for (final String message : messages) {
 
-                System.out.println("topic message is:" + message);
+                //System.out.println("topic message is:" + message);
 
                 ByteString data = ByteString.copyFromUtf8(message);
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
