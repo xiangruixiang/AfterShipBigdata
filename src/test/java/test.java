@@ -1,29 +1,62 @@
-import org.apache.log4j.Logger;
-import org.bson.Document;
-import org.json.JSONObject;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.sql.Timestamp;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.io.*;
-
-import static java.lang.Character.UnicodeBlock.*;
-import com.google.common.base.Strings;
+import java.util.Properties;
 
 public class test {
 
     static String GCPprojectId = "";
-    static  String GCPtopic = "";
-    static  String MongoDBServerIP = "";
-    static  String MongoDBServerPort = "";
-    static  String MongoDBDatabase = "";
-    static  String MongoDBTable = "";
+    static String GCPtopic = "";
+    static String MongoDBServerIP = "";
+    static String MongoDBServerPort = "";
+    static String MongoDBDatabase = "";
+    static String MongoDBTable = "";
 
 
-    public static void main( String args[] ) throws ParseException {
+    public static void main(String args[]) throws ParseException, IOException {
+
+        Properties pro = new Properties();
+        // 存储
+
+        pro.setProperty("SearchTime", "2018-03-06 05:13:14");
+        // 获取
+        // String url1=pro.getProperty("url1", "test");//存在获取给定值，不存在获取默认值
+        // System.out.println(url1);
+
+        // 存储到e:others绝对路径 盘符：
+        // pro.store(new FileOutputStream("e:/others/db.properties"), "db配置");
+        // pro.storeToXML(new FileOutputStream("e:/others/db.xml"), "db配置");
+        // 使用相对路径 当前工程
+        try {
+            pro.store(new FileOutputStream("/Users/xiangruixiang/Documents/db.properties"), "db配置");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+/*
+        System.out.println(args[0]);
+
+
+        Properties resource = new Properties();
+        FileInputStream stream = null;
+
+
+        try {
+            stream = new FileInputStream("/Users/xiangruixiang/Documents/db.properties");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        resource.load(stream);
+
+        //read properties
+
+        System.out.println(resource.getProperty("SearchTime").toString());
+
+
+    }
+*/
 
 /*
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss mmm");
@@ -48,6 +81,7 @@ public class test {
         System.out.println(newsdf.format(nowTime.getTime()));
         */
 
+/*
 
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss mmm");
         String str="2019-04-19 06:44:17 044";
@@ -59,7 +93,7 @@ public class test {
         String reStr = sdf.format(dt1);
         System.out.println(reStr);
 
-
+*/
 
 /*
         Random r = new Random();
@@ -193,7 +227,7 @@ public class test {
 */
 
 
-    }
+
 /*
     private static boolean checkStringContainChinese(String checkStr){
         if(!Strings.isNullOrEmpty(checkStr)){
@@ -216,5 +250,7 @@ public class test {
         }
         return false;
     }*/
+}
 
 }
+

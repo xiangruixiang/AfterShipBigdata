@@ -24,6 +24,7 @@ public class EbayTable {
     static Logger log = Logger.getLogger(EbayTable.class.getClass());
 
 
+
     public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String tableName, String searchTime){
 
         String sourceTimeBegin = null;
@@ -51,6 +52,7 @@ public class EbayTable {
             mapSlug = getSlugs(mongoDatabase, "couriers");
 
             Date searchTimeDate =df.parse(searchTime);   //convert to date
+            Properties pro = new Properties();
 
             while (true){
 
@@ -75,7 +77,11 @@ public class EbayTable {
                 catch (Exception e){
                     log.error( e.getClass().getName() + ": " + e.getMessage() );
                     log.error("Exception: Search mongo DB error");
+                }finally {
+                    pro.setProperty("SearchTime", searchTime.toString());
+                    //pro.store(new FileOutputStream("/Users/xiangruixiang/Documents/configuration.properties"), "db配置");
                 }
+
             }
         }catch(Exception e){
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -216,7 +222,8 @@ public class EbayTable {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'");
 
         try {
-            query.put("index_updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
+            //index_updated_at  created_at   updated_at
+            query.put("updated_at", BasicDBObjectBuilder.start("$gte", startDate).add("$lt",endDate).get());
 
             log.info("Begin time is :" + df.format(new Date()));
 
@@ -240,12 +247,14 @@ public class EbayTable {
                     mapMessage.put("tracking_number", json.get("tracking_number").toString());
 
                     if(json.containsKey("custom_fields")){
+                        JSONObject valueObject = JSONObject.parseObject(json.toJson());
 
-                        String valueObject = json.get("custom_fields").toString();
+                        String customFieldsJson = valueObject.get("custom_fields").toString();
 
-                        if(valueObject.contains("user_provided_carrier_name")) {
-                            JSONObject customFieldsJson = JSONObject.parseObject(valueObject);
-                            mapMessage.put("user_provided_carrier_name", JasonHandler(customFieldsJson.toString(), "user_provided_carrier_name"));
+                        if(customFieldsJson.contains("user_provided_carrier_name")) {
+                            JSONObject customFields = JSONObject.parseObject(customFieldsJson);
+
+                            mapMessage.put("user_provided_carrier_name", JasonHandler(customFields.toString(), "user_provided_carrier_name"));
                         }
                         else {mapMessage.put("user_provided_carrier_name","null");}
                     }
@@ -259,7 +268,6 @@ public class EbayTable {
                     if(courierId.equals("null")) {
                         courierId = JasonHandler(json, "origin_courier_id").trim();
                     }
-
 
                     mapMessage.put("slug", "null");
                     for (Map.Entry<String, Object> entry : mapSlug.entrySet()) {
@@ -301,14 +309,14 @@ public class EbayTable {
                     jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                     mapMessage.clear();
 
-                    //log.info("output data is:" + jsonStr);
+                    log.info("output data is:" + jsonStr);
                     dataList.add(jsonStr); //add message to list
                 }
             }
 
             if(dataList.size()>0){
                 //send to publish
-             //   PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPeBayTopiceEbayToBigTable);
+                PublishMessage.publishMessagesWithErrorHandler(dataList, Mongodb.GCPprojectId, Mongodb.GCPeBayTopiceEbayToBigTable);
             }
 
         }

@@ -47,7 +47,13 @@ public class Mongodb {
         MongoDBTable = resource.getProperty("MongoDBTable");
 
         // initialize time to begin search , please use updated_at value, example: 2018-03-06 00:10:00
-        searchTime = resource.getProperty("SearchTime");
+        if(args.length>1){
+            searchTime = args[1];
+        }
+        else {
+            searchTime = resource.getProperty("SearchTime");
+        }
+
 
         EbayTable mongoDB = new EbayTable();
 

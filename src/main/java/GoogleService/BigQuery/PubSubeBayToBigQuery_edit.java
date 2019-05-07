@@ -132,8 +132,8 @@ public class PubSubeBayToBigQuery_edit {
                 .apply(ParDo.of(new ExtractWords()))        // split messages
                 .apply(ParDo.of(new StringToRowConverter()))
                 .apply(
-                        BigQueryIO.writeTableRows().to(tableSpec).withSchema(StringToRowConverter.getSchema())
-                                .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND));
+                        BigQueryIO.writeTableRows().to(tableSpec).withSchema(StringToRowConverter.getSchema())      // table schema
+                                .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND));         // append to table
 
 
 
