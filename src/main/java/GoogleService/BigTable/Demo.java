@@ -92,15 +92,14 @@ public class Demo {
         FilterAndSearchValue(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
 */
 
-/*        //filters
+        //filters
         colMap.put("Courier","UPS");
-        colMap.put("Destination","china");
+        colMap.put("Destination","japan");
         colMap.put("Status","Out for Delivery");
 
-  */
         // search box
-        //searchValue = "5";
-       // mutipleFilter(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
+        searchValue = "5@";
+        mutipleFilter(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
 
 
     }

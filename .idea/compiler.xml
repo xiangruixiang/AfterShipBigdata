@@ -8,8 +8,10 @@
         <outputRelativeToContentRoot value="true" />
         <module name="AfterShip.Bigdata" />
         <module name="AfterShipBigdata" />
-        <module name="testemptyjava" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="testemptyjava" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

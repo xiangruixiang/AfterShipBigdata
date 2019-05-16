@@ -3,11 +3,14 @@ package GoogleService.Spanner;
 import GoogleService.BigTable.CloudBigtableOptions;
 import com.google.cloud.bigtable.beam.CloudBigtableIO;
 import com.google.cloud.bigtable.beam.CloudBigtableTableConfiguration;
+import com.google.cloud.spanner.Struct;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.gcp.spanner.SpannerIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.ToString;
+import org.apache.beam.sdk.values.PCollection;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -62,11 +65,14 @@ public class SpannerToBigtable {
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
 
+            System.out.println(c.element());
+            String cleanData = c.element().replace("\\[","").replace("\\]","");
+            //[1, Marc]
 
-
-            c.output(new Put(c.element().getBytes()).addColumn(FAMILY, QUALIFIER, VALUE));
+            c.output(new Put(c.element().getBytes()).addColumn(FAMILY, QUALIFIER, Bytes.toBytes(c.element())));
         }
     };
+
     // [END bigtable_dataflow_connector_process_element]
 
     /**
@@ -106,9 +112,21 @@ public class SpannerToBigtable {
                         .build();
         // [END bigtable_dataflow_connector_config]
 
+
+        String instanceId = "test-data";
+        String databaseId = "test";
+        String tableName = "test_trackings";
+
+        PCollection<Struct> records = p.apply(
+                SpannerIO.read()
+                        .withInstanceId(instanceId)
+                        .withDatabaseId(databaseId)
+                        .withQuery("SELECT * FROM " + tableName));
+
+
         // [START bigtable_dataflow_connector_write_helloworld]
-        p
-                .apply(Create.of("Hello", "World"))
+        records
+                .apply(ToString.elements())
                 .apply(ParDo.of(MUTATION_TRANSFORM))
                 .apply(CloudBigtableIO.writeToTable(config));
         // [END bigtable_dataflow_connector_write_helloworld]

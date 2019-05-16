@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import com.google.api.services.bigquery.model.TimePartitioning;
 import com.google.common.collect.ImmutableList;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
@@ -30,7 +31,7 @@ import java.io.IOException;
  * <p>The example will try to cancel the pipelines on the signal to terminate the process (CTRL-C)
  * and then exits.
  */
-public class PubSubeBayToBigQuery_edit {
+public class PubSubeBayToBigQuery_partition {
 
     static final int WINDOW_SIZE = 1;
 
@@ -55,8 +56,10 @@ public class PubSubeBayToBigQuery_edit {
 
 
             c.output(new TableRow()
-                    .set("string_field", jsonObject.get("string_field").toString())
-                    .set("counts", jsonObject.get("counts"))
+                    .set("year", jsonObject.get("year"))
+                    .set("month", jsonObject.get("month"))
+                    .set("day", jsonObject.get("day"))
+                    .set("maxTemp", jsonObject.get("maxTemp"))
             );
         }
 
@@ -65,11 +68,17 @@ public class PubSubeBayToBigQuery_edit {
                     .setFields(
                             ImmutableList.of(
                                     new TableFieldSchema()
-                                            .setName("string_field")
-                                            .setType("STRING"),
+                                            .setName("year")
+                                            .setType("INTEGER"),
                                     new TableFieldSchema()
-                                            .setName("counts")
-                                            .setType("INTEGER")
+                                            .setName("month")
+                                            .setType("INTEGER"),
+                                    new TableFieldSchema()
+                                            .setName("day")
+                                            .setType("DATE"),
+                                    new TableFieldSchema()
+                                            .setName("maxTemp")
+                                            .setType("FLOAT")
                             )
                     );
         }
@@ -127,15 +136,21 @@ public class PubSubeBayToBigQuery_edit {
                         .append(options.getBigQueryTable())
                         .toString();
 
+
         pipeline
                 .apply(PubsubIO.readStrings().fromTopic(options.getPubsubTopic()))      //get message form pubsub
                 .apply(ParDo.of(new ExtractWords()))        // split messages
                 .apply(ParDo.of(new StringToRowConverter()))
                 .apply(
                         BigQueryIO.writeTableRows()
-                                .to(tableSpec)
-                                .withSchema(StringToRowConverter.getSchema())      // table schema
-                                .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND));         // append to table
+                                .to(tableSpec)   // + "_partitioning"
+                                .withSchema(StringToRowConverter.getSchema())
+                                // NOTE: an existing table without time partitioning set up will not work
+                                .withTimePartitioning(new TimePartitioning().setType("DAY"))
+                               // .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
+                                .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
+                );
+        // append to table
 
 
 

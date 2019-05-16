@@ -104,7 +104,7 @@ public class HelloWorldWrite {
                         .withInstanceId(INSTANCE_ID)
                         .withTableId(TABLE_ID)
                         .build();
-        // [END bigtable_dataflow_connector_config]
+
 
         // [START bigtable_dataflow_connector_write_helloworld]
         p
