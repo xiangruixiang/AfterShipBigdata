@@ -24,15 +24,18 @@ import static java.lang.Character.UnicodeBlock.*;
 public class Demo {
 
     // Refer to table metadata names by byte array in the HBase API
-    private static final byte[] TABLE_NAME = Bytes.toBytes("my-table");
-    private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes("cf1");
+    private static final byte[] TABLE_NAME = Bytes.toBytes("eBay_checkpoints");
+    private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes("cf");
 
 
 
     public static void main(String[] args) {
+
+
         // Consult system properties to get project/instance
         String projectId = "aftership-team-data";
         String instanceId = "test-demo";
+  /*
         String userid = "62ea48f64389525f31006338";
         String reverseUserid = new StringBuffer(userid).reverse().toString();
         String startRow = reverseUserid + "#20180300112343000";
@@ -40,10 +43,11 @@ public class Demo {
         Map<String,Object> colMap = new HashMap<String,Object>();
         String searchValue="";
 
-/*
+
 
         // insert data
         String Rowkey= reverseUserid + "#20180306111218";
+        System.out.println(Rowkey);
         colMap.put("Date","20180306111218");
         colMap.put("Title","222211111");
         colMap.put("Tracking_number","aaaaaa");
@@ -52,13 +56,13 @@ public class Demo {
         colMap.put("Customer_phone","342652w524");
         colMap.put("Origin","japan");
         colMap.put("Destination","USA");
-        colMap.put("Courier","JD");
+        colMap.put("Courier","");
         colMap.put("Status","In Transit");
         colMap.put("Return_to_sender","FALSE");
 
         WriteTable(projectId, instanceId, Rowkey, colMap);
-*/
 
+*/
 
 
 /*
@@ -90,7 +94,7 @@ public class Demo {
         String searchValue = "5@aftership.com";
 
         FilterAndSearchValue(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
-*/
+
 
         //filters
         colMap.put("Courier","UPS");
@@ -100,8 +104,51 @@ public class Demo {
         // search box
         searchValue = "5@";
         mutipleFilter(projectId, instanceId, "cf1", startRow, endRow, colMap, searchValue);
+*/
 
 
+        //delete table
+
+        deleteTimeRange(projectId, instanceId);
+
+    }
+
+
+    public static void deleteTimeRange(String projectId, String instanceId) {
+
+        String rowPrifix = "3ae7c#0#15202";
+        try (Connection connection = BigtableConfiguration.connect(projectId, instanceId)) {
+
+            // Retrieve the table we just created so we can do some reads and writes
+            Table table = connection.getTable(TableName.valueOf(TABLE_NAME));
+            Scan scan = new Scan();
+            scan.setFilter(new PrefixFilter(rowPrifix.getBytes()));
+            ResultScanner rs = table.getScanner(scan);
+
+            List<Delete> list = getDeleteList(rs);
+            if (list.size() > 0) {
+
+                table.delete(list);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static List<Delete> getDeleteList(ResultScanner rs) {
+
+        List<Delete> list = new ArrayList<>();
+        try {
+
+            for (Result r : rs) {
+                Delete d = new Delete(r.getRow());
+                list.add(d);
+            }
+        } finally {
+            rs.close();
+        }
+        return list;
     }
 
 
