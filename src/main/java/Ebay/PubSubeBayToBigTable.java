@@ -23,40 +23,17 @@ import org.joda.time.Duration;
 import org.joda.time.Instant;
 
 
-/**
 
- *demo link:  https://codelabs.developers.google.com/codelabs/cpb104-bigtable-cbt/#5
- *
- * <p>
- * This is an example of reading from Cloud Pubsub and writing to Cloud Bigtable. The main method
- *  starts two jobs: one publishes messages to Cloud Pubsub, and the other one pulls messages,
- *  performs a word count for each message, and writes word count result to CBT.
- * </p>
- * This pipeline needs to be configured with four command line options for bigtable as well as
- *  pubsub:
- * </p>
- * <ul>
- * <li>--bigtableProjectId=[bigtable project]
- * <li>--bigtableInstanceId=[bigtable instance id]
- * <li>--bigtableTableId=[bigtable tableName]
- * <li>--inputFile=[file path on GCS]
- * <li>--pubsubTopic=projects/[project name]/topics/[topic name]
- * <p>
- * This example cannot be run locally using DirectPipelineRunner because PubsubIO won't work.
- * <p>
- * To run this starter example using managed resource in Google Cloud Platform, you should also
- * specify the following command-line options: --project=<YOUR_PROJECT_ID>
- * --stagingLocation=<STAGING_LOCATION_IN_CLOUD_STORAGE> --runner=BlockingDataflowPipelineRunner In
- * Eclipse, you can just modify the existing 'SERVICE' run configuration. The managed resource does
- * not require the GOOGLE_APPLICATION_CREDENTIALS, since the pipeline will use the security
- * configuration of the project specified by --project.
- */
 public class PubSubeBayToBigTable {
     private static final byte[] FAMILY = Bytes.toBytes("cf");
     private static final byte[] QUALIFIER = Bytes.toBytes("qualifier");
     static final int WINDOW_SIZE = 1; // Default window duration in minutes
     private static final int INJECTORNUMWORKERS = 1; //number of workers used for injecting
     static Logger log = Logger.getLogger(Mongodb.class.getClass());
+
+    /**
+     * 此函数用于将数据写入bigtable
+     */
 
     static final DoFn<String, Mutation> MUTATION_TRANSFORM = new DoFn<String, Mutation>() {
         private static final long serialVersionUID = 1L;
@@ -65,50 +42,30 @@ public class PubSubeBayToBigTable {
 
             JSONObject jsonObject = JSONObject.parseObject(c.element());
 
-/*
+            try {
+                Put put = new Put(Bytes.toBytes(jsonObject.get("rowKey").toString()));
 
-           {"date":"2018-03-02",
-           "utc_offset":"0",
-           "destination_country":"USA",
-           "checkpoint_created_at":"1520026955",
-           "user_provided_carrier_name":"null",
-           "substatus":"Delivered_001",
-           "first_checkpoint_time":"1519295040",
-           "message":"Delivered, Front Desk/Reception",
-           "origin_country":"CHN",
-           "user_id":"5a15e40427b2d9720b3b3737",
-           "tracking_number":"LS673795161CN",
-           "time":"15:10:00",
-           "slug":"usps",
-           "tracking_id":"5a9886f0de1e2f830b86c302",
-           "rowKey":"b3737#2#1520026955#fb8530fdd2f9c",
-           "status":"Delivered"
-           }
-*/
-                try {
-                    Put put = new Put(Bytes.toBytes(jsonObject.get("rowKey").toString()));
-
-                    put.addColumn(FAMILY, Bytes.toBytes("date"), Bytes.toBytes(jsonObject.get("date").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("utc_offset"), Bytes.toBytes(jsonObject.get("utc_offset").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("destination_country"), Bytes.toBytes(jsonObject.get("destination_country").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("checkpoint_created_at"), Bytes.toBytes(jsonObject.get("checkpoint_created_at").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("user_provided_carrier_name"), Bytes.toBytes(jsonObject.get("user_provided_carrier_name").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("substatus"), Bytes.toBytes(jsonObject.get("substatus").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("first_checkpoint_time"), Bytes.toBytes(jsonObject.get("first_checkpoint_time").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("message"), Bytes.toBytes(jsonObject.get("message").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("origin_country"), Bytes.toBytes(jsonObject.get("origin_country").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("user_id"), Bytes.toBytes(jsonObject.get("user_id").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("tracking_number"), Bytes.toBytes(jsonObject.get("tracking_number").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("time"), Bytes.toBytes(jsonObject.get("time").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("slug"), Bytes.toBytes(jsonObject.get("slug").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("tracking_id"), Bytes.toBytes(jsonObject.get("tracking_id").toString()));
-                    put.addColumn(FAMILY, Bytes.toBytes("status"), Bytes.toBytes(jsonObject.get("status").toString()));
-                    c.output(put);
-                }
-                catch (Exception e){
-                    log.error( e.getClass().getName() + ": " + e.getMessage() );
-                    log.error("Insert to big table xception message: " + jsonObject.toString());
-                }
+                put.addColumn(FAMILY, Bytes.toBytes("date"), Bytes.toBytes(jsonObject.get("date").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("utc_offset"), Bytes.toBytes(jsonObject.get("utc_offset").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("destination_country"), Bytes.toBytes(jsonObject.get("destination_country").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("checkpoint_created_at"), Bytes.toBytes(jsonObject.get("checkpoint_created_at").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("user_provided_carrier_name"), Bytes.toBytes(jsonObject.get("user_provided_carrier_name").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("substatus"), Bytes.toBytes(jsonObject.get("substatus").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("first_checkpoint_time"), Bytes.toBytes(jsonObject.get("first_checkpoint_time").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("message"), Bytes.toBytes(jsonObject.get("message").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("origin_country"), Bytes.toBytes(jsonObject.get("origin_country").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("user_id"), Bytes.toBytes(jsonObject.get("user_id").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("tracking_number"), Bytes.toBytes(jsonObject.get("tracking_number").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("time"), Bytes.toBytes(jsonObject.get("time").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("slug"), Bytes.toBytes(jsonObject.get("slug").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("tracking_id"), Bytes.toBytes(jsonObject.get("tracking_id").toString()));
+                put.addColumn(FAMILY, Bytes.toBytes("status"), Bytes.toBytes(jsonObject.get("status").toString()));
+                c.output(put);
+            }
+            catch (Exception e){
+                log.error( e.getClass().getName() + ": " + e.getMessage() );
+                log.error("Insert to big table xception message: " + jsonObject.toString());
+            }
 
         }
     };

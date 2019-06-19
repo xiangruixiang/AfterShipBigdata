@@ -22,32 +22,9 @@ import org.joda.time.Instant;
 
 
 /**
-
- *demo link:  https://codelabs.developers.google.com/codelabs/cpb104-bigtable-cbt/#5
+ * 此函数用于将pub/sub topic数据写入bigtable
  *
- * <p>
- * This is an example of reading from Cloud Pubsub and writing to Cloud Bigtable. The main method
- *  starts two jobs: one publishes messages to Cloud Pubsub, and the other one pulls messages,
- *  performs a word count for each message, and writes word count result to CBT.
- * </p>
- * This pipeline needs to be configured with four command line options for bigtable as well as
- *  pubsub:
- * </p>
- * <ul>
- * <li>--bigtableProjectId=[bigtable project]
- * <li>--bigtableInstanceId=[bigtable instance id]
- * <li>--bigtableTableId=[bigtable tableName]
- * <li>--inputFile=[file path on GCS]
- * <li>--pubsubTopic=projects/[project name]/topics/[topic name]
- * <p>
- * This example cannot be run locally using DirectPipelineRunner because PubsubIO won't work.
- * <p>
- * To run this starter example using managed resource in Google Cloud Platform, you should also
- * specify the following command-line options: --project=<YOUR_PROJECT_ID>
- * --stagingLocation=<STAGING_LOCATION_IN_CLOUD_STORAGE> --runner=BlockingDataflowPipelineRunner In
- * Eclipse, you can just modify the existing 'SERVICE' run configuration. The managed resource does
- * not require the GOOGLE_APPLICATION_CREDENTIALS, since the pipeline will use the security
- * configuration of the project specified by --project.
+ *
  */
 public class PubSubToBigTable {
     private static final byte[] FAMILY = Bytes.toBytes("cf");
@@ -113,29 +90,6 @@ public class PubSubToBigTable {
         void setInputFile(String location);
     }
 
-    /**
-     * <p>Creates a dataflow pipeline that creates the following chain:</p>
-     * <ol>
-     *   <li> Reads from a Cloud Pubsub topic
-     *   <li> Window into fixed windows of 1 minute
-     *   <li> Applies word count transform
-     *   <li> Creates Puts from each of the word counts in the array
-     *   <li> Performs a Bigtable Put on the items
-     * </ol>
-     *
-     * @param args Arguments to use to configure the Dataflow Pipeline.  The first three are required
-     *   when running via managed resource in Google Cloud Platform.  Those options should be omitted
-     *   for LOCAL runs.  The next four arguments are to configure the Bigtable connection. The last
-     *   two items are for Cloud Pubsub.
-     *        --runner=BlockingDataflowPipelineRunner
-     *        --project=[dataflow project] \\
-     *        --stagingLocation=gs://[your google storage bucket] \\
-     *        --bigtableProjectId=[bigtable project] \\
-     *        --bigtableInstanceId=[bigtable instance id] \\
-     *        --bigtableTableId=[bigtable tableName]
-     *        --inputFile=[file path on GCS]
-     *        --pubsubTopic=projects/[project name]/topics/[topic name]
-     */
 
     public static void main(String[] args) throws Exception {
         // CloudBigtableOptions is one way to retrieve the options.  It's not required.

@@ -32,29 +32,8 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * <p>
- * This is an example of importing a CSV into Bigtable with Dataflow. The main method adds the rows
- * of the CSV into the pipeline, converts them to Puts, and then writes the Puts to a Bigtable
- * table.
- * </p>
- * This pipeline needs to be configured with command line options:
- * </p>
- * <ul>
- * <li>--headers=[CSV headers]
- * <li>--inputFile=[URI to GCS file]
- * <li>--bigtableProjectId=[bigtable project]
- * <li>--bigtableInstanceId=[bigtable instance id]
- * <li>--bigtableTableId=[bigtable tableName]
- * <p>
- * To run this starter example locally using DirectPipelineRunner, just execute it with the
- * parameters from your favorite development environment.
- * <p>
- * To run this starter example using managed resource in Google Cloud Platform, you should also
- * specify the following command-line options: --project=<YOUR_PROJECT_ID>
- * --stagingLocation=<STAGING_LOCATION_IN_CLOUD_STORAGE> --runner=BlockingDataflowPipelineRunner In
- * Eclipse, you can just modify the existing 'SERVICE' run configuration. The managed resource does
- * not require the GOOGLE_APPLICATION_CREDENTIALS, since the pipeline will use the security
- * configuration of the project specified by --project.
+ * 此函数用于从GCS上读取CSV文件写入bigtable
+ *
  */
 public class CsvImport {
 
@@ -109,23 +88,6 @@ public class CsvImport {
   }
 
 
-  /**
-   * <p>Creates a dataflow pipeline that reads a file and creates the following chain:</p>
-   * <ol>
-   * <li> Put each row of the CSV into the Pipeline.
-   * <li> Creates a Put object for each row.
-   * <li> Write the Put object to Bigtable.
-   * </ol>
-   *
-   * @param args Arguments to use to configure the Dataflow Pipeline.  The first three are required
-   * when running via managed resource in Google Cloud Platform.  Those options should be omitted
-   * for LOCAL runs.  The next two are to configure your CSV file. And the last four arguments are
-   * to configure the Bigtable connection. --runner=BlockingDataflowPipelineRunner
-   * --project=[dataflow project] \\ --stagingLocation=gs://[your google storage bucket] \\
-   * --headers=[comma separated list of headers] \\ --inputFile=gs://[your google storage object] \\
-   * --bigtableProject=[bigtable project] \\ --bigtableInstanceId=[bigtable instance id] \\
-   * --bigtableTableId=[bigtable tableName]
-   */
 
   public static void main(String[] args) throws IllegalArgumentException {
     BigtableCsvOptions options =

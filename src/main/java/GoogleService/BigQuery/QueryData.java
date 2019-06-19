@@ -18,7 +18,7 @@ public class QueryData {
         BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
 
         QueryJobConfiguration queryConfig =
-                QueryJobConfiguration.newBuilder("SELECT id FROM testcode.testschedule")
+                QueryJobConfiguration.newBuilder("SELECT id FROM test.couriers")
                         .setUseLegacySql(false)
                         .build();
 

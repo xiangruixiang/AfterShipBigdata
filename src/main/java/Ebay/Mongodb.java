@@ -1,5 +1,16 @@
 package Ebay;
+/**
+此函数用于读取配置文件中读所需要参数
+        GCPprojectId： GCP 项目ID
+        GCPTopicTrackingsToBigTableAndBigQuery : GCP pubsub 用于bigquery topic 名称
+        GCPeBayTopiceEbayToBigTable：GCP pubsub bigtable topic 名称
+        MongoDBServerIP ：mongo db 服务器地址
+        MongoDBServerPort ：mongo db 服务器端口地址
+        MongoDBDatabase ：mongo db 数据库名称
+        MongoDBTable： mongo db 表名
+        searchTime： 初始化的读取时间
 
+*/
 import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
@@ -55,7 +66,7 @@ public class Mongodb {
         }
 
 
-        EbayTable mongoDB = new EbayTable();
+        ReadEbayTable mongoDB = new ReadEbayTable();
 
         //read mongo db
         mongoDB.ReadMongoDB(MongoDBServerIP,  MongoDBServerPort, MongoDBDatabase, MongoDBTable, searchTime);

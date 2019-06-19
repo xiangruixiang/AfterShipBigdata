@@ -1,11 +1,26 @@
 package MongoDB;
 
-import org.apache.log4j.Logger;
+/**
+此函数用于读取配置文件中读所需要参数
+        GCPprojectId： GCP 项目ID
+        GCPTopicTrackingsToBigTableAndBigQuery : GCP pubsub 用于bigquery topic 名称
+        GCPeBayTopiceEbayToBigTable：GCP pubsub bigtable topic 名称
+        MongoDBServerIP ：mongo db 服务器地址
+        MongoDBServerPort ：mongo db 服务器端口地址
+        MongoDBDatabase ：mongo db 数据库名称
+        MongoDBTable： mongo db 表名
+        searchTime： 初始化的读取时间
 
+*/
+
+import org.apache.log4j.Logger;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+
+
+
 
 
 public class Mongodb {
@@ -37,8 +52,7 @@ public class Mongodb {
         }
         resource.load(stream);
 
-        //read properties
-        //read properties
+        //读取配置文件
         GCPprojectId = resource.getProperty("GCPprojectId");
         GCPTopicTrackingsToBigTableAndBigQuery = resource.getProperty("GCPTopicTrackingsToBigTableAndBigQuery");
         GCPeBayTopiceEbayToBigTable = resource.getProperty("GCPeBayTopiceEbayToBigTable");
@@ -47,10 +61,10 @@ public class Mongodb {
         MongoDBDatabase = resource.getProperty("MongoDBDatabase");
         MongoDBTable = resource.getProperty("MongoDBTable");
 
-        // initialize time to begin search , please use updated_at value, example: 2018-03-06 00:10:00
+        // 初始化读取updated_at 时间, example: 2018-03-06 00:10:00
         searchTime = resource.getProperty("SearchTime");
 
-        MongoDBUtil mongoDB = new MongoDBUtil();
+        ReadTrackingsTable mongoDB = new ReadTrackingsTable();
 
         //read mongo db
         mongoDB.ReadMongoDB(MongoDBServerIP,  MongoDBServerPort, MongoDBDatabase ,MongoDBTable, searchTime);

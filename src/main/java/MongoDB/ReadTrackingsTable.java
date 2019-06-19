@@ -14,15 +14,23 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import org.apache.log4j.Logger;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class MongoDBUtil {
+public class ReadTrackingsTable {
 
-    static Logger log = Logger.getLogger(MongoDBUtil.class.getClass());
+    static Logger log = Logger.getLogger(ReadTrackingsTable.class.getClass());
+
+    /**
+        此函数用于配置读取mongo db tracking 表数据 ，并发送至 pubsub,
+        所需要参数:
+        serverIP ：mongo db 服务器地址
+        serverPort ：mongo db 服务器端口地址
+        databaseName： mongo db 数据库名称
+        searchTime： 初始化的读取时间
+*/
 
     public void ReadMongoDB(String serverIP, String serverPort, String databaseName, String MongoDBTable, String searchTime){
 
@@ -149,7 +157,6 @@ public class MongoDBUtil {
 
                         jsonStr = JSON.toJSONString(mapMessage); //covert map to string
                         mapMessage.clear();
-                       // log.info("origin value is:" + jsonObject.toString());
                         log.info("output data is:" + jsonStr);
 
                         dataList.add(jsonStr); //add message to list

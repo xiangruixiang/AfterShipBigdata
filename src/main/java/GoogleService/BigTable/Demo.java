@@ -18,15 +18,14 @@ import static java.lang.Character.UnicodeBlock.*;
 
 
 /**
- * A minimal application that connects to Cloud Bigtable using the native HBase API
- * and performs some basic operations.
+ *  此函数用于 查询big table 示例， 用于shipment 界面查询
+ *
  */
 public class Demo {
 
     // Refer to table metadata names by byte array in the HBase API
     private static final byte[] TABLE_NAME = Bytes.toBytes("eBay_checkpoints");
     private static final byte[] COLUMN_FAMILY_NAME = Bytes.toBytes("cf");
-
 
 
     public static void main(String[] args) {
