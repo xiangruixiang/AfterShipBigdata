@@ -1,6 +1,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Properties;
 
 public class test {
@@ -12,10 +13,30 @@ public class test {
     static String MongoDBDatabase = "";
     static String MongoDBTable = "";
 
+    public static boolean isDateString(String datevalue, String dateFormat) {
+
+        try {
+            SimpleDateFormat fmt = new SimpleDateFormat(dateFormat);
+            java.util.Date dd = fmt.parse(datevalue);
+            if (datevalue.equals(fmt.format(dd))) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     public static void main(String args[]) throws ParseException, IOException {
 
-        Properties pro = new Properties();
+
+        System.out.println(isDateString("2018-01-01","yyyy-MM-dd"));
+
+
+
+      /*  Properties pro = new Properties();
         // 存储
 
         pro.setProperty("SearchTime", "2018-03-06 05:13:14");
@@ -31,7 +52,7 @@ public class test {
             pro.store(new FileOutputStream("/Users/xiangruixiang/Documents/db.properties"), "db配置");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
 
 

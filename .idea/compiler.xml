@@ -6,12 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="AfterShip.Bigdata" />
-        <module name="AfterShipBigdata" />
+        <module name="AfterShipBigdata (1)" />
+        <module name="AfterShipBigdata (2)" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="testemptyjava" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
